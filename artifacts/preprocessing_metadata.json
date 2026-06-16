@@ -1,0 +1,95 @@
+{
+  "project": "NutriSmart AI",
+  "dataset_file": "ObesityDataSet_raw_and_data_sinthetic.csv",
+  "rows_raw": 2111,
+  "duplicates_removed": 24,
+  "rows_clean": 2087,
+  "target_source": "NObeyesdad",
+  "target_name": "Obesity_Binary",
+  "target_mapping": {
+    "0": "Non-Obesity",
+    "1": "Obesity"
+  },
+  "obesity_source_classes": [
+    "Obesity_Type_I",
+    "Obesity_Type_II",
+    "Obesity_Type_III"
+  ],
+  "main_features": [
+    "FCVC",
+    "NCP",
+    "CH2O",
+    "FAF",
+    "TUE",
+    "FAVC",
+    "CAEC",
+    "SCC",
+    "CALC",
+    "MTRANS"
+  ],
+  "numeric_features": [
+    "FCVC",
+    "NCP",
+    "CH2O",
+    "FAF",
+    "TUE"
+  ],
+  "categorical_features": [
+    "FAVC",
+    "CAEC",
+    "SCC",
+    "CALC",
+    "MTRANS"
+  ],
+  "excluded_body_features": [
+    "Height",
+    "Weight"
+  ],
+  "profile_features_not_used": [
+    "Age",
+    "Gender",
+    "family_history_with_overweight"
+  ],
+  "other_features_not_used": [
+    "SMOKE",
+    "NObeyesdad"
+  ],
+  "test_size": 0.2,
+  "random_state": 42,
+  "train_rows": 1669,
+  "test_rows": 418,
+  "transformed_feature_count": 21,
+  "transformed_feature_names": [
+    "FCVC",
+    "NCP",
+    "CH2O",
+    "FAF",
+    "TUE",
+    "FAVC_no",
+    "FAVC_yes",
+    "CAEC_Always",
+    "CAEC_Frequently",
+    "CAEC_Sometimes",
+    "CAEC_no",
+    "SCC_no",
+    "SCC_yes",
+    "CALC_Frequently",
+    "CALC_Sometimes",
+    "CALC_no",
+    "MTRANS_Automobile",
+    "MTRANS_Bike",
+    "MTRANS_Motorbike",
+    "MTRANS_Public_Transportation",
+    "MTRANS_Walking"
+  ],
+  "preprocessing": {
+    "numeric": [
+      "SimpleImputer(strategy='median')",
+      "StandardScaler()"
+    ],
+    "categorical": [
+      "SimpleImputer(strategy='most_frequent')",
+      "OneHotEncoder(handle_unknown='ignore')"
+    ]
+  }
+}

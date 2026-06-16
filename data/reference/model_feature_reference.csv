@@ -1,0 +1,11 @@
+feature,type,minimum,maximum,description
+FCVC,numeric,1.0,3.0,Frekuensi konsumsi sayuran
+NCP,numeric,1.0,4.0,Jumlah/frekuensi makanan utama
+CH2O,numeric,1.0,3.0,Konsumsi air harian
+FAF,numeric,0.0,3.0,Frekuensi aktivitas fisik
+TUE,numeric,0.0,2.0,Waktu menggunakan perangkat teknologi
+FAVC,categorical,,,Sering mengonsumsi makanan tinggi kalori
+CAEC,categorical,,,Kebiasaan makan di antara waktu makan
+SCC,categorical,,,Kebiasaan memantau konsumsi kalori
+CALC,categorical,,,Konsumsi alkohol
+MTRANS,categorical,,,Moda transportasi utama
