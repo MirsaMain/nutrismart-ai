@@ -1,0 +1,49 @@
+{
+  "project": "NutriSmart AI",
+  "selection_metric": "f1",
+  "positive_class": {
+    "value": 1,
+    "label": "Obesity"
+  },
+  "cross_validation": {
+    "method": "StratifiedKFold",
+    "n_splits": 5,
+    "shuffle": true,
+    "random_state": 42
+  },
+  "training_rows": 1669,
+  "testing_rows_reserved": 418,
+  "features": [
+    "FCVC",
+    "NCP",
+    "CH2O",
+    "FAF",
+    "TUE",
+    "FAVC",
+    "CAEC",
+    "SCC",
+    "CALC",
+    "MTRANS"
+  ],
+  "models_compared": [
+    "Logistic Regression",
+    "Random Forest",
+    "Gradient Boosting"
+  ],
+  "best_baseline_model": "Random Forest",
+  "best_baseline_cv_f1": 0.8845304567927519,
+  "best_parameters": {
+    "model__max_depth": null,
+    "model__max_features": "sqrt",
+    "model__min_samples_leaf": 1,
+    "model__n_estimators": 400
+  },
+  "tuned_cv_accuracy": 0.893348438258618,
+  "tuned_cv_precision": 0.894330550070177,
+  "tuned_cv_recall": 0.8752191894127378,
+  "tuned_cv_f1": 0.8842269282636975,
+  "tuned_cv_roc_auc": 0.9539555202364373,
+  "tuned_f1_generalization_gap": 0.11287736694510742,
+  "test_data_used_for_final_evaluation": false,
+  "candidate_model_file": "candidate_model_pipeline.joblib"
+}
