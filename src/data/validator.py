@@ -1,0 +1,3 @@
+def validate_positive_number(value: float, field_name: str) -> None:
+    if value <= 0:
+        raise ValueError(f"{field_name} harus lebih dari nol.")

@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment and secrets
+.env
+.streamlit/secrets.toml
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary model or output files
+artifacts/*.tmp
