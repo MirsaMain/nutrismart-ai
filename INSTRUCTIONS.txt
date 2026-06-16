@@ -1,0 +1,6 @@
+1. Salin seluruh isi folder ini ke project nutrismart-ai.
+2. Pertahankan struktur folder.
+3. Pastikan artifacts/best_model_pipeline.joblib tersedia.
+4. Jalankan: pytest
+5. Jalankan: python -m streamlit run streamlit_app.py
+6. Buka halaman Skrining.
