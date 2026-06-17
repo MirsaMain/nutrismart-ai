@@ -1,6 +1,19 @@
 import sqlite3
 from pathlib import Path
 
+from src.config import DATABASE_PATH
 
-def get_connection(database_path: str | Path = "nutrismart.db"):
-    return sqlite3.connect(database_path)
+
+def get_connection(
+    database_path: str | Path = DATABASE_PATH,
+) -> sqlite3.Connection:
+    path = Path(database_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    connection = sqlite3.connect(
+        path,
+        timeout=30,
+    )
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
+    return connection

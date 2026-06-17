@@ -12,6 +12,9 @@ MODEL_PATH = ARTIFACTS_DIR / "best_model_pipeline.joblib"
 MODEL_METADATA_PATH = ARTIFACTS_DIR / "model_metadata.json"
 MODEL_METRICS_PATH = ARTIFACTS_DIR / "model_metrics.json"
 
+DATABASE_PATH = DATA_DIR / "nutrismart.db"
+DEFAULT_USER_ID = "local-user"
+
 APP_NAME = "NutriSmart AI"
 DEFAULT_CLASSIFICATION_THRESHOLD = 0.50
 

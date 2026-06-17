@@ -1,6 +1,11 @@
-1. Salin seluruh isi folder ini ke project nutrismart-ai.
-2. Pertahankan struktur folder.
-3. Pastikan artifacts/best_model_pipeline.joblib tersedia.
-4. Jalankan: pytest
-5. Jalankan: python -m streamlit run streamlit_app.py
-6. Buka halaman Skrining.
+INTEGRASI DATABASE DAN RIWAYAT HARIAN
+
+1. Ekstrak file ZIP.
+2. Salin seluruh isi folder hasil ekstrak ke root project nutrismart-ai.
+3. Pilih Replace untuk file dengan nama yang sama.
+4. Pastikan terminal berada di root project.
+5. Jalankan: python -m pytest -q
+6. Jalankan: python -m streamlit run streamlit_app.py
+7. Buka halaman Skrining dan simpan minimal dua hasil.
+8. Buka halaman Riwayat.
+9. Database lokal dibuat otomatis di data/nutrismart.db.

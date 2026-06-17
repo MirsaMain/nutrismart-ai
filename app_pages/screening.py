@@ -1,6 +1,10 @@
 import streamlit as st
 
 from src.config import MODEL_PATH
+from src.database.repository import (
+    initialize_database,
+    save_screening_record,
+)
 from src.features.input_schema import (
     ACTIVITY_SCORE_MAPPING,
     ALCOHOL_MAPPING,
@@ -14,6 +18,8 @@ from src.features.input_schema import (
 from src.models.inference import load_model
 from src.services.screening_service import process_screening
 
+initialize_database()
+
 st.title("📋 Skrining Risiko Pola Hidup")
 st.write(
     "Masukkan data tubuh dan kebiasaan hidup Anda. BMI digunakan untuk "
@@ -23,7 +29,7 @@ st.write(
 
 st.info(
     "Hasil ini merupakan skrining berbasis data, bukan diagnosis medis. "
-    "Skor menunjukkan keluaran model terhadap pola dalam dataset."
+    "Setiap hasil yang berhasil diproses akan disimpan ke riwayat lokal."
 )
 
 if not MODEL_PATH.exists():
@@ -74,7 +80,6 @@ with st.form("screening_form", clear_on_submit=False):
             "Tingkat konsumsi sayuran",
             list(VEGETABLE_SCORE_MAPPING.keys()),
             index=1,
-            help="Pemetaan operasional: skor 1 rendah sampai skor 3 tinggi.",
         )
         ncp = st.slider(
             "Jumlah makanan utama per hari",
@@ -93,7 +98,6 @@ with st.form("screening_form", clear_on_submit=False):
             "Tingkat konsumsi air harian",
             list(WATER_SCORE_MAPPING.keys()),
             index=1,
-            help="Pemetaan operasional: skor 1 rendah sampai skor 3 tinggi.",
         )
         scc_label = st.selectbox(
             "Apakah Anda memantau asupan kalori?",
@@ -112,13 +116,11 @@ with st.form("screening_form", clear_on_submit=False):
             "Tingkat aktivitas fisik",
             list(ACTIVITY_SCORE_MAPPING.keys()),
             index=1,
-            help="Pemetaan operasional: skor 0 tidak aktif sampai skor 3 tinggi.",
         )
         tue_label = st.selectbox(
             "Tingkat penggunaan perangkat teknologi",
             list(TECHNOLOGY_SCORE_MAPPING.keys()),
             index=1,
-            help="Pemetaan operasional: skor 0 rendah sampai skor 2 tinggi.",
         )
 
     with activity_col_2:
@@ -129,7 +131,7 @@ with st.form("screening_form", clear_on_submit=False):
         )
 
     submitted = st.form_submit_button(
-        "Proses skrining",
+        "Proses dan simpan skrining",
         type="primary",
         use_container_width=True,
     )
@@ -155,11 +157,24 @@ if submitted:
             weight_kg=weight_kg,
             lifestyle_input=lifestyle_input,
         )
+
+        record_id = save_screening_record(
+            height_cm=height_cm,
+            weight_kg=weight_kg,
+            screening_result=result,
+            lifestyle_input=lifestyle_input,
+        )
+
+        result["record_id"] = record_id
     except Exception as error:
-        st.error("Data tidak dapat diproses.")
+        st.error("Data tidak dapat diproses atau disimpan.")
         st.exception(error)
     else:
         st.session_state["last_screening_result"] = result
+        st.success(
+            f"Hasil skrining berhasil disimpan ke riwayat "
+            f"dengan ID {record_id}."
+        )
 
 result = st.session_state.get("last_screening_result")
 
@@ -170,7 +185,10 @@ if result:
     col_1, col_2, col_3 = st.columns(3)
     col_1.metric("BMI", f"{result['bmi']:.2f}")
     col_2.metric("Kategori BMI", result["bmi_category"])
-    col_3.metric("Skor pola hidup", f"{result['risk_score']:.1f}/100")
+    col_3.metric(
+        "Skor pola hidup",
+        f"{result['risk_score']:.1f}/100",
+    )
 
     st.progress(
         min(max(int(round(result["risk_score"])), 0), 100),
@@ -185,9 +203,8 @@ if result:
         st.success(result["interpretation"])
 
     st.caption(
-        "Skor berasal dari probabilitas kelas Obesity yang dihasilkan pipeline "
-        "model lalu dikalikan 100. Skor bukan probabilitas klinis dan kategori "
-        "rendah/sedang/tinggi bukan batas medis."
+        "Skor berasal dari keluaran model dan bukan probabilitas klinis. "
+        "Data hasil skrining disimpan di database SQLite lokal."
     )
 
     with st.expander("Lihat input yang dikirim ke model"):
@@ -196,11 +213,16 @@ if result:
     with st.expander("Lihat keluaran teknis model"):
         st.write(
             {
+                "record_id": result.get("record_id"),
                 "predicted_class": result["predicted_class"],
                 "obesity_probability": round(
-                    result["obesity_probability"], 6
+                    result["obesity_probability"],
+                    6,
                 ),
-                "risk_score": round(result["risk_score"], 2),
+                "risk_score": round(
+                    result["risk_score"],
+                    2,
+                ),
                 "risk_category": result["risk_category"],
             }
         )
