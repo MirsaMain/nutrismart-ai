@@ -1,10 +1,12 @@
-INTEGRASI RECOMMENDATION ENGINE DAN MEAL PLAN
+PENYIMPANAN MEAL PLAN AKTIF KE DATABASE
 
-1. Ekstrak file ZIP.
-2. Salin seluruh isinya ke root project nutrismart-ai.
-3. Pilih Replace jika Windows menemukan file dengan nama sama.
-4. Pastikan sudah ada minimal satu riwayat skrining.
-5. Jalankan: python -m pytest -q
-6. Jalankan: python -m streamlit run streamlit_app.py
-7. Buka menu Meal Plan.
-8. Pilih preferensi dan klik Buat meal plan 7 hari.
+1. Ekstrak ZIP.
+2. Salin seluruh isi ke root project nutrismart-ai.
+3. Replace file app_pages/meal_plan.py.
+4. Jalankan: python -m pytest -q
+5. Jalankan: python -m streamlit run streamlit_app.py
+6. Buka Meal Plan.
+7. Buat plan baru.
+8. Klik Simpan sebagai meal plan aktif.
+9. Hentikan dan jalankan ulang Streamlit.
+10. Pastikan plan aktif tetap tampil.

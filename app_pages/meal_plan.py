@@ -1,6 +1,13 @@
 import pandas as pd
 import streamlit as st
 
+from src.database.meal_plan_repository import (
+    activate_meal_plan,
+    get_active_meal_plan,
+    initialize_meal_plan_database,
+    list_meal_plans,
+    save_active_meal_plan,
+)
 from src.database.repository import (
     get_screening_history,
     initialize_database,
@@ -10,26 +17,24 @@ from src.recommendations.meal_plan_service import (
     generate_meal_plan,
     plan_to_csv_bytes,
 )
-from src.services.history_service import (
-    get_latest_actual_record,
-)
+from src.services.history_service import get_latest_actual_record
 
 initialize_database()
+initialize_meal_plan_database()
 
 st.title("🍽️ Meal Plan")
 st.write(
-    "Halaman ini membuat rencana makan tujuh hari berbasis aturan "
-    "dengan menggunakan hasil skrining terbaru dan preferensi pengguna."
+    "Buat dan simpan rencana makan tujuh hari berdasarkan hasil "
+    "skrining terbaru serta preferensi pengguna."
 )
 
 st.warning(
     "Meal plan ini bersifat edukasi untuk orang dewasa umum. "
-    "Rencana ini bukan diet terapeutik, tidak menghitung kebutuhan kalori "
-    "individual, dan tidak menggantikan konsultasi dokter atau ahli gizi."
+    "Rencana bukan diet terapeutik, tidak menghitung kebutuhan "
+    "kalori individual, dan tidak menggantikan dokter atau ahli gizi."
 )
 
 history = get_screening_history()
-
 if history.empty:
     st.info(
         "Belum ada hasil skrining. Buka halaman **Skrining**, "
@@ -39,78 +44,63 @@ if history.empty:
 
 latest_record = get_latest_actual_record(history)
 
-metric_col_1, metric_col_2, metric_col_3 = st.columns(3)
+# Muat kembali plan aktif dari database setelah aplikasi dibuka ulang.
+if "active_meal_plan" not in st.session_state:
+    saved_plan = get_active_meal_plan()
+    if saved_plan is not None:
+        st.session_state["active_meal_plan"] = saved_plan
 
-metric_col_1.metric(
+col_1, col_2, col_3 = st.columns(3)
+col_1.metric(
     "Skor terbaru",
     f"{float(latest_record['risk_score']):.1f}/100",
 )
-metric_col_2.metric(
+col_2.metric(
     "Kategori skor",
     str(latest_record["risk_category"]),
 )
-metric_col_3.metric(
+col_3.metric(
     "Kategori BMI",
     str(latest_record["bmi_category"]),
 )
 
 st.caption(
-    f"Rencana menggunakan skrining dengan ID "
-    f"{int(latest_record['record_id'])}."
+    f"Skrining terbaru memiliki ID {int(latest_record['record_id'])}."
 )
 
 with st.form("meal_plan_preferences"):
     st.subheader("Preferensi rencana")
+    pref_col_1, pref_col_2 = st.columns(2)
 
-    preference_col_1, preference_col_2 = st.columns(2)
-
-    with preference_col_1:
+    with pref_col_1:
         diet_style = st.selectbox(
             "Pola makan",
-            options=["Umum", "Vegetarian"],
-            help=(
-                "Vegetarian pada prototype ini dapat tetap menggunakan "
-                "telur atau susu kecuali bahan tersebut dipilih untuk dihindari."
-            ),
+            ["Umum", "Vegetarian"],
         )
-
         budget = st.selectbox(
             "Anggaran bahan makanan",
-            options=["Hemat", "Sedang"],
+            ["Hemat", "Sedang"],
         )
-
         include_snack = st.checkbox(
             "Sertakan satu camilan terencana per hari",
             value=True,
         )
 
-    with preference_col_2:
+    with pref_col_2:
         avoided_allergens = st.multiselect(
             "Bahan yang perlu dihindari",
-            options=[
+            [
                 "Telur",
                 "Susu",
                 "Kacang",
                 "Ikan/seafood",
                 "Kedelai",
             ],
-            help=(
-                "Fitur ini menyaring bahan yang disebutkan dalam template. "
-                "Aplikasi tidak dapat menjamin bebas kontaminasi silang."
-            ),
+            help="Filter tidak menjamin bebas kontaminasi silang.",
         )
-
         special_diet_needed = st.selectbox(
             "Apakah Anda memerlukan diet medis khusus?",
-            options=[
-                "Tidak",
-                "Ya atau tidak yakin",
-            ],
-            help=(
-                "Contoh: diabetes dengan terapi, penyakit ginjal, "
-                "penyakit hati, alergi berat, kehamilan/menyusui, "
-                "atau riwayat gangguan makan."
-            ),
+            ["Tidak", "Ya atau tidak yakin"],
         )
 
     generate_button = st.form_submit_button(
@@ -124,11 +114,11 @@ if generate_button:
         st.error(
             "Meal plan otomatis tidak dibuat karena Anda menyatakan "
             "memerlukan atau mungkin memerlukan diet khusus. "
-            "Gunakan bantuan dokter atau ahli gizi agar rencana aman."
+            "Gunakan bantuan dokter atau ahli gizi."
         )
     else:
         try:
-            plan = generate_meal_plan(
+            generated_plan = generate_meal_plan(
                 latest_record=latest_record,
                 diet_style=diet_style,
                 budget=budget,
@@ -138,27 +128,34 @@ if generate_button:
         except ValueError as error:
             st.error(str(error))
         else:
-            st.session_state["active_meal_plan"] = plan
+            generated_plan["is_saved"] = False
+            generated_plan["plan_id"] = None
+            st.session_state["active_meal_plan"] = generated_plan
 
 plan = st.session_state.get("active_meal_plan")
 
 if plan:
-    if (
-        int(plan["source_record_id"])
-        != int(latest_record["record_id"])
-    ):
+    if int(plan["source_record_id"]) != int(latest_record["record_id"]):
         st.info(
             "Meal plan yang sedang tampil dibuat dari skrining lama. "
-            "Klik **Buat meal plan 7 hari** untuk memperbaruinya."
+            "Buat plan baru untuk memakai hasil skrining terbaru."
+        )
+
+    if plan.get("is_saved"):
+        st.success(
+            f"Meal plan aktif tersimpan di database dengan ID "
+            f"{plan['plan_id']}."
+        )
+    else:
+        st.warning(
+            "Meal plan ini belum tersimpan permanen. Klik tombol "
+            "**Simpan sebagai meal plan aktif**."
         )
 
     st.divider()
-    st.subheader("Prioritas dari skrining terbaru")
+    st.subheader("Prioritas dari skrining")
 
-    for index, priority in enumerate(
-        plan["priorities"],
-        start=1,
-    ):
+    for index, priority in enumerate(plan["priorities"], start=1):
         with st.expander(
             f"{index}. {priority['title']}",
             expanded=index == 1,
@@ -168,7 +165,6 @@ if plan:
                 st.write(f"• {action}")
 
     st.subheader("Rencana makan tujuh hari")
-
     tabs = st.tabs(DAY_NAMES)
 
     for tab, day_name in zip(tabs, DAY_NAMES):
@@ -176,47 +172,63 @@ if plan:
             day_table = plan["plan_table"].loc[
                 plan["plan_table"]["Hari"] == day_name
             ]
-
             for _, row in day_table.iterrows():
-                st.markdown(
-                    f"### {row['Waktu makan']}"
-                )
+                st.markdown(f"### {row['Waktu makan']}")
                 st.write(f"**{row['Menu']}**")
                 st.write(row["Susunan"])
                 st.caption(row["Catatan"])
 
     st.subheader("Tabel lengkap")
-
     st.dataframe(
         plan["plan_table"],
         use_container_width=True,
         hide_index=True,
     )
 
-    st.download_button(
-        "Unduh meal plan sebagai CSV",
-        data=plan_to_csv_bytes(
-            plan["plan_table"]
-        ),
-        file_name="nutrismart_meal_plan_7_hari.csv",
-        mime="text/csv",
-        use_container_width=True,
-    )
+    action_col_1, action_col_2 = st.columns(2)
+
+    with action_col_1:
+        save_button = st.button(
+            "Simpan sebagai meal plan aktif",
+            type="primary",
+            use_container_width=True,
+            disabled=bool(plan.get("is_saved")),
+        )
+
+    with action_col_2:
+        st.download_button(
+            "Unduh meal plan sebagai CSV",
+            data=plan_to_csv_bytes(plan["plan_table"]),
+            file_name="nutrismart_meal_plan_7_hari.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+
+    if save_button:
+        try:
+            plan_id = save_active_meal_plan(plan)
+        except Exception as error:
+            st.error("Meal plan gagal disimpan.")
+            st.exception(error)
+        else:
+            st.session_state["active_meal_plan"] = (
+                get_active_meal_plan()
+            )
+            st.success(
+                f"Meal plan berhasil disimpan sebagai plan aktif "
+                f"dengan ID {plan_id}."
+            )
+            st.rerun()
 
     st.subheader("Pengingat umum")
-
     for reminder in plan["reminders"]:
         st.write(f"• {reminder}")
-
-    st.info(
-        "Menu dapat ditukar sesuai ketersediaan bahan. "
-        "Hentikan atau sesuaikan rencana jika timbul keluhan, "
-        "reaksi alergi, atau kondisi kesehatan berubah."
-    )
 
     with st.expander("Informasi teknis rencana"):
         st.write(
             {
+                "plan_id": plan.get("plan_id"),
+                "saved": bool(plan.get("is_saved")),
                 "source_record_id": plan["source_record_id"],
                 "source_risk_score": round(
                     plan["source_risk_score"],
@@ -231,5 +243,72 @@ if plan:
                     "avoided_allergens"
                 ],
                 "include_snack": plan["include_snack"],
+                "created_at": plan.get("created_at"),
             }
         )
+
+st.divider()
+
+with st.expander("Riwayat meal plan tersimpan"):
+    plans = list_meal_plans()
+
+    if plans.empty:
+        st.caption("Belum ada meal plan yang tersimpan.")
+    else:
+        plans_display = plans.copy()
+        plans_display["created_at"] = pd.to_datetime(
+            plans_display["created_at"],
+            errors="coerce",
+        ).dt.strftime("%d-%m-%Y %H:%M:%S")
+
+        plans_display["include_snack"] = (
+            plans_display["include_snack"]
+            .astype(bool)
+            .map({True: "Ya", False: "Tidak"})
+        )
+        plans_display["is_active"] = (
+            plans_display["is_active"]
+            .astype(bool)
+            .map({True: "Aktif", False: "Tidak aktif"})
+        )
+
+        plans_display = plans_display.rename(
+            columns={
+                "plan_id": "ID Plan",
+                "created_at": "Dibuat",
+                "source_record_id": "ID Skrining",
+                "source_risk_score": "Skor sumber",
+                "source_risk_category": "Kategori sumber",
+                "diet_style": "Pola makan",
+                "budget": "Anggaran",
+                "include_snack": "Camilan",
+                "is_active": "Status",
+                "item_count": "Jumlah item",
+            }
+        )
+
+        st.dataframe(
+            plans_display,
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        selected_plan_id = st.selectbox(
+            "Pilih ID plan yang ingin dijadikan aktif",
+            options=plans["plan_id"].astype(int).tolist(),
+        )
+
+        if st.button(
+            "Jadikan plan terpilih sebagai aktif",
+            use_container_width=True,
+        ):
+            if activate_meal_plan(int(selected_plan_id)):
+                st.session_state["active_meal_plan"] = (
+                    get_active_meal_plan()
+                )
+                st.success(
+                    f"Meal plan ID {selected_plan_id} sekarang aktif."
+                )
+                st.rerun()
+            else:
+                st.error("Meal plan tidak ditemukan.")
