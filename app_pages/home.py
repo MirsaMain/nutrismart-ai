@@ -1,9 +1,39 @@
+import base64
+from pathlib import Path
+
 import streamlit as st
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+TITLE_ICON_PATH = (
+    PROJECT_ROOT
+    / "assets"
+    / "celerates_nutrismart_icon.png"
+)
+
+TITLE_ICON_BASE64 = base64.b64encode(
+    TITLE_ICON_PATH.read_bytes()
+).decode("utf-8")
+
 
 
 st.markdown(
     """
     <style>
+        .hero-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-logo {
+            width: 74px;
+            height: 74px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
         .hero-title {
             font-size: 3.15rem;
             font-weight: 800;
@@ -90,7 +120,16 @@ st.markdown(
 
 
 st.markdown(
-    '<div class="hero-title">🥗 Celerates NutriSmart</div>',
+    f"""
+    <div class="hero-brand">
+        <img
+            class="hero-logo"
+            src="data:image/png;base64,{TITLE_ICON_BASE64}"
+            alt="Celerates NutriSmart"
+        />
+        <div class="hero-title">Celerates NutriSmart</div>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
