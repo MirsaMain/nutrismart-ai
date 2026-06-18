@@ -30,6 +30,12 @@ meal_plan_page = st.Page(
     icon="🍽️",
 )
 
+workout_plan_page = st.Page(
+    "app_pages/workout_plan.py",
+    title="Workout Plan",
+    icon="🏃",
+)
+
 food_scanner_page = st.Page(
     "app_pages/5_Food_Scanner.py",
     title="Food Scanner",
@@ -48,6 +54,7 @@ navigation = st.navigation(
         screening_page,
         history_page,
         meal_plan_page,
+        workout_plan_page,
         food_scanner_page,
         model_page,
     ]

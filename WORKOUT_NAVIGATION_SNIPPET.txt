@@ -1,0 +1,28 @@
+JANGAN REPLACE streamlit_app.py karena project Anda sudah memiliki Food Scanner.
+
+Buka streamlit_app.py dan tambahkan definisi halaman berikut di dekat
+definisi meal_plan_page:
+
+workout_plan_page = st.Page(
+    "app_pages/workout_plan.py",
+    title="Workout Plan",
+    icon="🏃",
+)
+
+Kemudian tambahkan workout_plan_page ke daftar st.navigation().
+Contoh urutan:
+
+navigation = st.navigation(
+    [
+        home_page,
+        screening_page,
+        history_page,
+        meal_plan_page,
+        workout_plan_page,
+        food_scanner_page,
+        model_page,
+    ]
+)
+
+Nama variabel halaman lain harus mengikuti nama yang sudah ada
+di streamlit_app.py Anda.
