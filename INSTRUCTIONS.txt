@@ -1,11 +1,10 @@
-INTEGRASI DATABASE DAN RIWAYAT HARIAN
+INTEGRASI RECOMMENDATION ENGINE DAN MEAL PLAN
 
 1. Ekstrak file ZIP.
-2. Salin seluruh isi folder hasil ekstrak ke root project nutrismart-ai.
-3. Pilih Replace untuk file dengan nama yang sama.
-4. Pastikan terminal berada di root project.
+2. Salin seluruh isinya ke root project nutrismart-ai.
+3. Pilih Replace jika Windows menemukan file dengan nama sama.
+4. Pastikan sudah ada minimal satu riwayat skrining.
 5. Jalankan: python -m pytest -q
 6. Jalankan: python -m streamlit run streamlit_app.py
-7. Buka halaman Skrining dan simpan minimal dua hasil.
-8. Buka halaman Riwayat.
-9. Database lokal dibuat otomatis di data/nutrismart.db.
+7. Buka menu Meal Plan.
+8. Pilih preferensi dan klik Buat meal plan 7 hari.
