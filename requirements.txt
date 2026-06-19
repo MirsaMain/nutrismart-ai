@@ -9,3 +9,5 @@ jupyterlab
 ipykernel
 sqlalchemy
 pytest
+torch
+torchvision
